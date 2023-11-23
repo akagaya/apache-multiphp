@@ -6,7 +6,6 @@
 )
 # パス準備
 $startpath = Get-Location
-Set-Location $PSScriptRoot
 try {
   $dldir = $installPath + "\downloads\" 
   if(-not(Test-Path $dldir)){
@@ -40,6 +39,7 @@ Get-Service -Name "multiPHP-*" | ForEach-Object {
 
 
 # ダウンロード処理
+Set-Location $PSScriptRoot
 try {
   # プロキシ設定
   . .\script\set-proxy.ps1
@@ -93,20 +93,20 @@ if(-not(Test-Path ".\apache")){
 Copy-Item -Path ".\apache_ext\*" -Destination ".\apache" -Force -Recurse
 Remove-Item ".\apache_ext" -Force -Recurse
 
-# confが既に存在する場合はコピー退避した上で上書き
-if (-not(Test-Path ".\apache\conf")) {
-  New-Item ".\apache\conf" -ItemType Directory > $null
+# confが存在しない場合のみconfをコピー
+if ((Test-Path ".\apache\conf")) {
+  Write-Host "confフォルダが存在するため、設定を変更せずそのまま利用します。"
 } else {
-  Copy-Item -path ".\apache\conf" -Destination (".\apache\conf_old_" + [string](Get-Date -Format 'yyyyMMdd_HHmmss')) -Recurse
-}
-Copy-Item -Path ($PSScriptRoot + "\config\apache\*") -Destination ".\apache\conf" -Force -Recurse
-# 関連パスをセット
-Add-Content -Path ".\apache\conf\define.conf" -Value ('
+  New-Item ".\apache\conf" -ItemType Directory > $null
+  Copy-Item -Path ($PSScriptRoot + "\config\apache\*") -Destination ".\apache\conf" -Force -Recurse
+  # 関連パスをセット
+  Add-Content -Path ".\apache\conf\define.conf" -Value ('
 Define SRVROOT "' + $installPath + '\apache"
 Define DEFAULT_DOCROOT "' + $installPath + '\htdocs"
 Define DEFAULT_LOGDIR "' + $installPath + '\logs"
 Define PHPROOT "' + $installPath + '\php"
 ')
+}
 Write-Host "完了"
 
 
@@ -129,6 +129,7 @@ $phplist | ForEach-Object {
   if(-not(Test-Path "php\$exp")){
     New-Item "php\$exp" -ItemType Directory > $null
   }
+  # 既存ファイルがあっても強制上書き
   Copy-Item -Path "$exp\*" -Destination ("php\" + $exp) -Force -Recurse
   Remove-Item $exp -Recurse -Force
 }
