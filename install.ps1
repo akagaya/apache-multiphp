@@ -49,7 +49,7 @@ try {
   Invoke-WebRequest ("https://aka.ms/vs/17/release/vc_redist." + $arch + ".exe") -OutFile ($dldir + "\vc_redist." + $arch + ".exe")
 
   # Apache HTTPDダウンロード
-  .\script\download-apache.ps1 -arch $arch -outdir $dldir
+  .\script\download-apache-from-lounge.ps1 -arch $arch -outdir $dldir
 
   # PHPダウンロード
   .\script\download-php.ps1 -arch $arch -threadsafe $threadsafe -outdir ($dldir + "\php")
