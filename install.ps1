@@ -47,6 +47,12 @@ try {
   # Visual C++ランタイムパッケージ
   Write-Host "最新のVisual C++ランタイムパッケージをダウンロードします。"
   Invoke-WebRequest ("https://aka.ms/vs/17/release/vc_redist." + $arch + ".exe") -OutFile ($dldir + "\vc_redist." + $arch + ".exe")
+  Write-Host "最新のVisual C++ランタイムパッケージをインストールします。"
+  Start-Process ($dldir + "\vc_redist." + $arch + ".exe") -ArgumentList "/install /passive /norestart" -Wait
+  Write-Host "以前のVisual C++ランタイムパッケージ（VC11）をダウンロードします。"
+  Invoke-WebRequest ("https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_" + $arch + ".exe") -OutFile ($dldir + "\vc_redist-vc11." + $arch + ".exe")
+  Write-Host "以前のVisual C++ランタイムパッケージ（VC11）インストールします。"
+  Start-Process ($dldir + "\vc_redist-vc11." + $arch + ".exe") -ArgumentList "/install /passive /norestart" -Wait
 
   # Apache HTTPDダウンロード
   .\script\download-apache-from-lounge.ps1 -arch $arch -outdir $dldir
