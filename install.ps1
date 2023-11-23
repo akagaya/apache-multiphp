@@ -53,6 +53,8 @@ try {
   Invoke-WebRequest ("https://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_" + $arch + ".exe") -OutFile ($dldir + "\vc_redist-vc11." + $arch + ".exe")
   Write-Host "以前のVisual C++ランタイムパッケージ（VC11）インストールします。"
   Start-Process ($dldir + "\vc_redist-vc11." + $arch + ".exe") -ArgumentList "/install /passive /norestart" -Wait
+  Write-Host "PHP 5.4以前の実行にはさらにランタイムパッケージが必要な場合があります。公式サイトより取得してインストールしてください。"
+  Write-Host "https://learn.microsoft.com/ja-JP/cpp/windows/latest-supported-vc-redist"
 
   # Apache HTTPDダウンロード
   .\script\download-apache-from-lounge.ps1 -arch $arch -outdir $dldir
