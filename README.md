@@ -32,11 +32,12 @@ PHPのメジャーバージョンごとに`multiphp-phpXX`というWindowsサー
 * 8.0
 * 8.1
 * 8.2
+* 8.3
 
 ## 使い方
 
 管理者権限で実行したPowerShellにて`install.ps1`を実行してください。
-既定ではスクリプトが置かれたパス配下に`server`というフォルダを作成し、その中にインストールします。
+既定ではPowerShellセッションのカレントフォルダ配下に`server`というフォルダを作成し、その中にインストールします。
 
 ### 起動パラメータ
 
@@ -127,14 +128,7 @@ Define DEFAULT_LOGDIR "ここを書き換え"
 │  │  ├─extra
 │  │  │  ├─enable-php55
 │  │  │  ├─enable-php56
-│  │  │  ├─enable-php70
-│  │  │  ├─enable-php71
-│  │  │  ├─enable-php72
-│  │  │  ├─enable-php73
-│  │  │  ├─enable-php74
-│  │  │  ├─enable-php80
-│  │  │  ├─enable-php81
-│  │  │  ├─enable-php82
+│  │  │  ├─enable-phpXX
 │  │  │  ├─httpd-static.conf → `multiphp-static`が読み込むconf
 │  │  │  ├─php-loader.conf   → PHPのバージョン切り替え
 ```
@@ -145,7 +139,7 @@ Define DEFAULT_LOGDIR "ここを書き換え"
 アップデートを行う場合は、新規インストールと同操作を実行します。
 **動作は保証されないため、設定ファイルなどのバックアップを行ってください**
 
-* 既存のApache HTTPDの`conf`フォルダは`conf_old_yyyyMMdd_HHmmss`とリネームされ、スクリプト同梱の`conf`が再配置されます。
+* 既存のApache HTTPDの`conf`が存在する場合は既存ファイルを維持します。
 * `php.ini`が存在する場合は既存ファイルを維持します。
 * `htdocs`、`logs`フォルダが存在する場合、それらのフォルダは操作しません。
 * 上記以外のファイルはすべて最新のファイルで上書きされます。
