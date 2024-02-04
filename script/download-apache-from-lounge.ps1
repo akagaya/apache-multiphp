@@ -30,7 +30,7 @@ https://www.apachelounge.com/download/
 $ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0"
 
 $response = Invoke-WebRequest "https://www.apachelounge.com/download/" -UserAgent $ua
-$targetregex = "httpd-(\d*.\d*.\d*)-" + $arch + "-(v[sc]\d*)"
+$targetregex = "httpd-(\d*.\d*.\d*)-(\d*)-" + $arch + "-(v[sc]\d*)"
 
 $links = @()
 
