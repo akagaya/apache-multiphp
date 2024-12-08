@@ -1,5 +1,5 @@
 $tgtsvc = Get-Service multiphp-*
 $tgtsvc | ForEach-Object {
   $_ | Stop-Service
-  $_ | Remove-Service
+  Start-Process sc -ArgumentList "delete",$_.ServiceName
 }
