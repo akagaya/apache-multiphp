@@ -144,20 +144,47 @@ $phplist | ForEach-Object {
 Write-Progress -Activity "展開中 - PHP" -Completed
 
 # `php.ini`の設置とXDebugの反映
-$xdbgconf = Get-Content ($PSScriptRoot + "\config\php\xdebug.ini")
+$xdbgconf = Get-Content ($PSScriptRoot + "\config\php\xdebug.ini") -Raw
+$commonIni = Get-Content ($PSScriptRoot + "\config\php\common.ini") -Raw
 $phplist = Get-ChildItem ".\php"
 $phplist | ForEach-Object {
-  # `php.ini`が存在しない場合だけコピー
-  if(-not(Test-Path ($_.FullName + "\php.ini"))){
-    Copy-Item -Path ($PSScriptRoot + "\config\php\" + $_.Name + "\*") -Destination $_.FullName -Recurse
-    # extを絶対パスで追記
-    Add-Content -Path ($_.FullName + "\php.ini") -Value ('extension_dir = "' + $_.FullName + '\ext"')
-    
-    # 新規コピー時のみXDebug設定を追記
-    if($xdebug){
-      Copy-Item -Path ($dldir + "\php\xdebug\" + $_.Name + "\*") -Destination $_.FullName -Recurse -Force
-      Add-Content -Path ($_.FullName + "\php.ini") -Value $xdbgconf
+  $phpDir = $_.FullName
+  $iniPath = Join-Path $phpDir "php.ini"
+  $devIni = Join-Path $phpDir "php.ini-development"
+
+  # `php.ini`が存在しない場合だけ生成
+  if(-not(Test-Path $iniPath)){
+    Write-Host ("Generating php.ini for " + $_.Name + "...")
+    $content = Get-Content $devIni -Raw
+
+    # 1. 基本的な拡張機能を一括で有効化 (コメントアウトを解除)
+    # php5系(php_xxx.dll)とphp7系以降(xxx)の両方の形式に対応
+    $targetExtensions = @("bz2", "curl", "fileinfo", "gd", "gd2", "gettext", "ldap", "mbstring", "exif", "openssl", "pdo_mysql", "pdo_pgsql", "pdo_sqlite", "sqlite3", "zip")
+    foreach ($ext in $targetExtensions) {
+        # ;extension=ext と ;extension=php_ext.dll の両方を置換
+        $content = $content -replace ";extension=$ext", "extension=$ext"
+        $content = $content -replace ";extension=php_$ext\.dll", "extension=php_$ext.dll"
     }
+
+    # 2. extension_dir を設定
+    $content += "`r`nextension_dir = `"ext`""
+    
+    # 3. 共通設定 (common.ini) をマージ
+    $content += "`r`n`r`n; --- Common Overrides ---`r`n"
+    $content += $commonIni
+
+    # 4. XDebug設定を追記
+    if($xdebug){
+      # XDebugバイナリのコピー
+      $xdbgSrc = Join-Path $dldir ("php\xdebug\" + $_.Name)
+      if (Test-Path $xdbgSrc) {
+        Copy-Item -Path (Join-Path $xdbgSrc "*") -Destination $phpDir -Recurse -Force
+        $content += "`r`n`r`n; --- Xdebug ---`r`n"
+        $content += $xdbgconf
+      }
+    }
+
+    $content | Set-Content $iniPath -NoNewline
   }
 }
 Write-Host "完了"

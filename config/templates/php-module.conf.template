@@ -1,0 +1,11 @@
+<IfDefine php{{VERSION_CLEAN}}>
+  Define EnablePHP
+  PidFile "${SRVROOT}/logs/httpd.php{{VERSION_CLEAN}}.pid"
+
+{{LOAD_FILES}}
+
+  LoadModule {{MODULE}} "${PHPROOT}\php{{VERSION_CLEAN}}\{{HANDLER}}"
+  PHPIniDir "${PHPROOT}\php{{VERSION_CLEAN}}"
+
+  Include "${SRVROOT}\conf\extra\enable-php{{VERSION_CLEAN}}\*.conf"
+</IfDefine>

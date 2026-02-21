@@ -5,7 +5,7 @@ Param(
   [string]$outdir = "php"
 )
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
 
 Write-Host '
 ############################################################
@@ -21,18 +21,26 @@ $targetregex = "php_xdebug-(\d*\.\d*\.\d*(?:RC\d*)?)-(\d*\.\d*)-v[cs]\d*" +
 ".dll"
 
 # 配布ページスクレイピング
-$response = Invoke-WebRequest ($baseUrl + "/download/historical")
-$html = $response.ParsedHtml.getElementsByTagName("a")
+$response = Invoke-WebRequest ($baseUrl + "/download/historical") -UseBasicParsing
+$rawLinks = [regex]::Matches($response.Content, '(?i)href=["'']?([^"''>]+\.dll)["'']?') | ForEach-Object { $_.Groups[1].Value }
+
 $xdbglist = @{}
-foreach ( $dom in $html ) {
-  if ( ($dom.pathname -match $targetregex) ) {
+foreach ( $link in $rawLinks ) {
+  $filename = $link -split "/" | Select-Object -Last 1
+  if ( ($filename -match $targetregex) ) {
     $mver = $Matches[2]
+    $ver  = $Matches[1]
+
+    # 相対パスを絶対URLに変換
+    $absLink = if ($link.StartsWith("http")) { $link } 
+               elseif ($link.StartsWith("/")) { $baseUrl + $link }
+               else { $baseUrl + "/download/" + $link }
 
     # 各最新版リンクを取得
-    if (($xdbglist[$mver] -eq $null) -or ($xdbglist[$mver]["latest"] -lt $Matches[1]) ) {
+    if (($xdbglist[$mver] -eq $null) -or ($xdbglist[$mver]["latest_ver"] -lt $ver) ) {
       $pkginfo = @{
-        "latest" = $Matches[2]
-        "link"   = $baseUrl + "/" + $dom.pathname
+        "latest_ver" = $ver
+        "link"       = $absLink
       }
       $xdbglist[$mver] = $pkginfo
     }

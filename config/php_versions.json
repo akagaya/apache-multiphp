@@ -1,0 +1,93 @@
+[
+  {
+    "version": "5.5",
+    "module": "php5_module",
+    "handler": "php5apache2_4.dll",
+    "dlls": ["php5ts.dll", "libpq.dll", "libeay32.dll", "ssleay32.dll", "libssh2.dll"],
+    "port": 20055
+  },
+  {
+    "version": "5.6",
+    "module": "php5_module",
+    "handler": "php5apache2_4.dll",
+    "dlls": ["php5ts.dll", "libpq.dll", "libeay32.dll", "ssleay32.dll", "libssh2.dll"],
+    "port": 20056
+  },
+  {
+    "version": "7.0",
+    "module": "php7_module",
+    "handler": "php7apache2_4.dll",
+    "dlls": ["php7ts.dll", "libpq.dll", "libssh2.dll"],
+    "port": 20070
+  },
+  {
+    "version": "7.1",
+    "module": "php7_module",
+    "handler": "php7apache2_4.dll",
+    "dlls": ["php7ts.dll", "libpq.dll", "libssh2.dll"],
+    "port": 20071
+  },
+  {
+    "version": "7.2",
+    "module": "php7_module",
+    "handler": "php7apache2_4.dll",
+    "dlls": ["php7ts.dll", "libpq.dll", "libssh2.dll"],
+    "port": 20072
+  },
+  {
+    "version": "7.3",
+    "module": "php7_module",
+    "handler": "php7apache2_4.dll",
+    "dlls": ["php7ts.dll", "libpq.dll", "libssh2.dll"],
+    "port": 20073
+  },
+  {
+    "version": "7.4",
+    "module": "php7_module",
+    "handler": "php7apache2_4.dll",
+    "dlls": ["php7ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20074
+  },
+  {
+    "version": "8.0",
+    "module": "php_module",
+    "handler": "php8apache2_4.dll",
+    "dlls": ["php8ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20080
+  },
+  {
+    "version": "8.1",
+    "module": "php_module",
+    "handler": "php8apache2_4.dll",
+    "dlls": ["php8ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20081
+  },
+  {
+    "version": "8.2",
+    "module": "php_module",
+    "handler": "php8apache2_4.dll",
+    "dlls": ["php8ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20082
+  },
+  {
+    "version": "8.3",
+    "module": "php_module",
+    "handler": "php8apache2_4.dll",
+    "dlls": ["php8ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20083
+  },
+  {
+    "version": "8.4",
+    "module": "php_module",
+    "handler": "php8apache2_4.dll",
+    "dlls": ["php8ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20084
+  },
+  {
+    "version": "8.5",
+    "module": "php_module",
+    "handler": "php8apache2_4.dll",
+    "dlls": ["php8ts.dll", "libpq.dll", "libssh2.dll", "libsasl.dll", "libsqlite3.dll"],
+    "port": 20085
+  }
+]

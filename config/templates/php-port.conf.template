@@ -1,0 +1,12 @@
+Listen {{PORT}}
+ServerName 127.0.0.1:{{PORT}}
+
+DocumentRoot "${DEFAULT_DOCROOT}"
+<Directory "${DEFAULT_DOCROOT}">
+  Options All
+  AllowOverride All
+  Require all granted
+</Directory>
+
+ErrorLog "${DEFAULT_LOGDIR}/error-httpd_php{{VERSION_CLEAN}}.log"
+CustomLog "${DEFAULT_LOGDIR}/access-httpd_php{{VERSION_CLEAN}}.log" customcsv

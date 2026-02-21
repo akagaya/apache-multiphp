@@ -3,7 +3,7 @@
   [string]$outdir = [string](Get-Location)
 )
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
 
 Write-Host '
 ############################################################
@@ -12,13 +12,18 @@ https://www.apachehaus.com/cgi-bin/download.plx
 ############################################################
 '
 
-$response = Invoke-WebRequest "https://www.apachehaus.com/cgi-bin/download.plx"
+$response = Invoke-WebRequest "https://www.apachehaus.com/cgi-bin/download.plx" -UseBasicParsing
 $targetregex = "httpd-(\d*.\d*.\d*)-([a-z0-9]*)-" + $arch + "-(v[sc]\d*)"
 
 $links = @()
 
-$response.ParsedHtml.getElementsByTagName("a") | ForEach-Object {
-  if($_.innerHTML -match $targetregex){
+# HTMLからリンク(href)を抽出する正規表現
+$rawLinks = [regex]::Matches($response.Content, '(?i)href=["'']?([^"''>]+\.zip)["'']?') | ForEach-Object { $_.Groups[1].Value }
+
+foreach ($link in $rawLinks) {
+  # ファイル名部分のみを抽出してマッチング
+  $filename = $link -split "/" | Select-Object -Last 1
+  if($filename -match $targetregex){
     $links += [PSCustomObject]@{
       "version" = $Matches[1]
       "sslver" = $Matches[2]
