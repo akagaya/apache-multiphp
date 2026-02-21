@@ -5,7 +5,7 @@ Param(
   [string]$outdir = "php"
 )
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
 
 Write-Host '
 ############################################################
@@ -27,20 +27,29 @@ $targetregex = "php-(\d*\.\d*)\.(\d*)" + (&{if(-not $threadsafe){Write-Output "-
 
 Write-Host "一覧の取得中..."
 foreach($url in $targetUrl){
-  $response = Invoke-WebRequest ($baseUrl + $url)
-  # aタグ一覧を取得。Powershell7.xから`ParsedHtml`プロパティは削除されたため、5.1を使うか代替案検討
-  # https://docs.microsoft.com/ja-jp/powershell/scripting/whats-new/differences-from-windows-powershell?view=powershell-7.2#changes-to-web-cmdlets
-  $html = $response.ParsedHtml.getElementsByTagName("a")
+  $fullUrl = $baseUrl + $url
+  $response = Invoke-WebRequest $fullUrl -UseBasicParsing
+  
+  # HTMLからリンク(href)を抽出する正規表現（大文字小文字を区別せず、引用符の有無にも対応）
+  $links = [regex]::Matches($response.Content, '(?i)href=["'']?([^"''>]+\.zip)["'']?') | ForEach-Object { $_.Groups[1].Value }
 
-  foreach ( $dom in $html ) {
-    if ( ($dom.innerHTML -match $targetregex) ) {
+  foreach ($link in $links) {
+    # ファイル名部分のみを抽出してマッチング
+    $filename = $link -split "/" | Select-Object -Last 1
+    if ($filename -match $targetregex) {
       $mver = $Matches[1]
+      $pver = $Matches[2]
+
+      # パスを絶対URLに変換
+      $absLink = if ($link.StartsWith("http")) { $link } 
+                 elseif ($link.StartsWith("/")) { "https://windows.php.net" + $link }
+                 else { $baseUrl + $url + $link }
 
       # 各最新版リンクを取得
-      if (($phplist[$mver] -eq $null) -or ([int32]$phplist[$mver]["latest"] -lt [int32]$Matches[2]) ) {
+      if (($phplist[$mver] -eq $null) -or ([int32]$phplist[$mver]["latest"] -lt [int32]$pver) ) {
         $pkginfo = @{
-          "latest" = $Matches[2]
-          "link"   = $baseUrl + $dom.pathname
+          "latest" = $pver
+          "link"   = $absLink
         }
         $phplist[$mver] = $pkginfo
       }
