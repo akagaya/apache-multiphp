@@ -15,10 +15,8 @@ https://xdebug.org/download/historical
 '
 
 $baseUrl = "https://xdebug.org"
-$targetregex = "php_xdebug-(\d*\.\d*\.\d*(?:RC\d*)?)-(\d*\.\d*)-v[cs]\d*" +
-  (& { if (-not $threadsafe) { Write-Output "-nts" } }) +
-  (& { if ($arch -eq "x64") { Write-Output "-x86_64" } }) +
-".dll"
+# バージョンとPHPバージョンを抽出するベース正規表現 (正式リリース版のみを対象にするため RC/alpha/beta は含めない)
+$baseRegex = "php_xdebug-(\d+\.\d+\.\d+)-(\d+\.\d+)"
 
 # 配布ページスクレイピング
 $response = Invoke-WebRequest ($baseUrl + "/download/historical") -UseBasicParsing
@@ -27,23 +25,34 @@ $rawLinks = [regex]::Matches($response.Content, '(?i)href=["'']?([^"''>]+\.dll)[
 $xdbglist = @{}
 foreach ( $link in $rawLinks ) {
   $filename = $link -split "/" | Select-Object -Last 1
-  if ( ($filename -match $targetregex) ) {
-    $mver = $Matches[2]
+  if ( ($filename -match $baseRegex) ) {
     $ver  = $Matches[1]
+    $mver = $Matches[2]
 
-    # 相対パスを絶対URLに変換
-    $absLink = if ($link.StartsWith("http")) { $link } 
-               elseif ($link.StartsWith("/")) { $baseUrl + $link }
-               else { $baseUrl + "/download/" + $link }
+    # すでにそのPHPバージョンの最新を見つけている場合はスキップ（上にあるものほど新しい）
+    if ($xdbglist.ContainsKey($mver)) { continue }
 
-    # 各最新版リンクを取得
-    if (($xdbglist[$mver] -eq $null) -or ($xdbglist[$mver]["latest_ver"] -lt $ver) ) {
-      $pkginfo = @{
-        "latest_ver" = $ver
-        "link"       = $absLink
-      }
-      $xdbglist[$mver] = $pkginfo
+    # 1. アーキテクチャのチェック
+    if ($arch -eq "x64" -and $filename -notmatch "-x86_64") { continue }
+    if ($arch -eq "x86" -and $filename -match "-x86_64") { continue }
+
+    # 2. スレッドセーフのチェック
+    if ($threadsafe) {
+      # TS希望時：NTSタグがあるものは除外
+      if ($filename -match "-nts[-.]") { continue }
+    } else {
+      # NTS希望時：NTSタグがあるもののみ
+      if ($filename -notmatch "-nts[-.]") { continue }
     }
+
+    # 最初に適合したものを最新として記録
+    $pkginfo = @{
+      "latest_ver" = $ver
+      "link"       = if ($link.StartsWith("http")) { $link } 
+                     elseif ($link.StartsWith("/")) { $baseUrl + $link }
+                     else { $baseUrl + "/download/" + $link }
+    }
+    $xdbglist[$mver] = $pkginfo
   }
 }
 
