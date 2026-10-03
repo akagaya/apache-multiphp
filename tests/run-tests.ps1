@@ -161,6 +161,7 @@ Assert-True ($ini84 -contains 'extension=gd') 'php.ini 8.4 gd'
 Assert-True (-not ($ini84 -contains 'extension=ldap')) 'php.ini 8.4 は ldap を有効化しない（Max 8.2）'
 Assert-True ($ini84 -contains 'extension=zip') 'php.ini 8.4 zip'
 Assert-True (-not ($ini84 -contains 'extension=fileinfo')) 'php.ini DLL がない拡張は有効化しない'
+Assert-True ($ini84 -contains '; apache-multiphp: 拡張 fileinfo は ext フォルダにないため有効化していません') 'php.ini 有効化できなかった拡張を記録する'
 Assert-True ($ini84 -contains 'xdebug.start_with_request = yes') 'php.ini Xdebug 3 設定'
 Assert-True (-not ($ini84 -contains 'xdebug.remote_enable = 1')) 'php.ini Xdebug 3 で旧設定を書かない'
 $mb = [array]::IndexOf($ini84, 'extension=mbstring'); $ex = [array]::IndexOf($ini84, 'extension=exif')

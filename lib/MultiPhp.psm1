@@ -356,7 +356,12 @@ function New-PhpIniAddition {
     foreach ($n in $names) {
       if ($ExtensionFiles -contains "php_$n.dll") { $found = $n; break }
     }
-    if (-not $found) { continue }
+    if (-not $found) {
+      # 新しい PHP で拡張が廃止・改名された場合に気付けるよう、黙って飛ばさない
+      Write-Warning "PHP $minor には拡張 $($ext.Name) がないため、有効化しませんでした。"
+      $lines += "; apache-multiphp: 拡張 $($ext.Name) は ext フォルダにないため有効化していません"
+      continue
+    }
     if ($minor -ge [version]'7.2') { $lines += "extension=$found" } else { $lines += "extension=php_$found.dll" }
   }
   if ($Xdebug) {
