@@ -1,0 +1,14 @@
+root = true
+
+[*]
+end_of_line = crlf
+insert_final_newline = true
+
+# Windows PowerShell 5.1 は BOM のない UTF-8 を ANSI として読むため、BOM を付ける
+[*.{ps1,psm1,psd1}]
+charset = utf-8-bom
+indent_style = space
+indent_size = 2
+
+[*.md]
+charset = utf-8
