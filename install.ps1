@@ -46,7 +46,9 @@ try {
 
   # Visual C++ランタイムパッケージ
   Write-Host "最新のVisual C++ランタイムパッケージをダウンロードします。"
-  Invoke-WebRequest ("https://aka.ms/vs/17/release/vc_redist." + $arch + ".exe") -OutFile ($dldir + "\vc_redist." + $arch + ".exe")
+  # PHP 8.6以降はVisual Studio 2026（VS18）ビルドのため、PHP公式の案内に従い「Visual C++ v14 Redistributable」の最新版を取得する。
+  # v14ランタイムは後方互換のため、VS17以前でビルドされたPHPもこのランタイムで動作する。
+  Invoke-WebRequest ("https://aka.ms/vc14/vc_redist." + $arch + ".exe") -OutFile ($dldir + "\vc_redist." + $arch + ".exe")
   Write-Host "最新のVisual C++ランタイムパッケージをインストールします。"
   Start-Process ($dldir + "\vc_redist." + $arch + ".exe") -ArgumentList "/install /passive /norestart" -Wait
   Write-Host "以前のVisual C++ランタイムパッケージ（VC11）をダウンロードします。"
@@ -154,9 +156,15 @@ $phplist | ForEach-Object {
     Add-Content -Path ($_.FullName + "\php.ini") -Value ('extension_dir = "' + $_.FullName + '\ext"')
     
     # 新規コピー時のみXDebug設定を追記
+    # リリース直後のPHPなど対応するXdebugビルドが未公開の場合は、存在しないDLLを読み込まないよう追記しない
     if($xdebug){
-      Copy-Item -Path ($dldir + "\php\xdebug\" + $_.Name + "\*") -Destination $_.FullName -Recurse -Force
-      Add-Content -Path ($_.FullName + "\php.ini") -Value $xdbgconf
+      $xdbgdir = $dldir + "\php\xdebug\" + $_.Name
+      if(Test-Path ($xdbgdir + "\ext\php_xdebug.dll")){
+        Copy-Item -Path ($xdbgdir + "\*") -Destination $_.FullName -Recurse -Force
+        Add-Content -Path ($_.FullName + "\php.ini") -Value $xdbgconf
+      } else {
+        Write-Host ($_.Name + "に対応するXdebugが見つからないため、Xdebugの設定をスキップします。")
+      }
     }
   }
 }
