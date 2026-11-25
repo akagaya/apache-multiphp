@@ -149,22 +149,26 @@ Write-Progress -Activity "展開中 - PHP" -Completed
 $xdbgconf = Get-Content ($PSScriptRoot + "\config\php\xdebug.ini")
 $phplist = Get-ChildItem ".\php"
 $phplist | ForEach-Object {
+  $phpini = $_.FullName + "\php.ini"
   # `php.ini`が存在しない場合だけコピー
-  if(-not(Test-Path ($_.FullName + "\php.ini"))){
+  if(-not(Test-Path $phpini)){
     Copy-Item -Path ($PSScriptRoot + "\config\php\" + $_.Name + "\*") -Destination $_.FullName -Recurse
     # extを絶対パスで追記
-    Add-Content -Path ($_.FullName + "\php.ini") -Value ('extension_dir = "' + $_.FullName + '\ext"')
-    
-    # 新規コピー時のみXDebug設定を追記
-    # リリース直後のPHPなど対応するXdebugビルドが未公開の場合は、存在しないDLLを読み込まないよう追記しない
-    if($xdebug){
-      $xdbgdir = $dldir + "\php\xdebug\" + $_.Name
-      if(Test-Path ($xdbgdir + "\ext\php_xdebug.dll")){
-        Copy-Item -Path ($xdbgdir + "\*") -Destination $_.FullName -Recurse -Force
-        Add-Content -Path ($_.FullName + "\php.ini") -Value $xdbgconf
-      } else {
-        Write-Host ($_.Name + "に対応するXdebugが見つからないため、Xdebugの設定をスキップします。")
-      }
+    Add-Content -Path $phpini -Value ('extension_dir = "' + $_.FullName + '\ext"')
+  }
+
+  # XDebug設定の追記
+  # 新規コピー時に加え、リリース直後のPHPなど前回インストール時に対応ビルドが未公開だった場合も、
+  # 再実行時に対応ビルドが見つかれば追記する。
+  # php.iniに「xdebug」の記述が1つでもあれば（コメントアウトを含む）設定済みとみなし、利用者の設定は変更しない。
+  if($xdebug -and -not(Select-String -Path $phpini -Pattern "xdebug" -Quiet)){
+    $xdbgdir = $dldir + "\php\xdebug\" + $_.Name
+    if(Test-Path ($xdbgdir + "\ext\php_xdebug.dll")){
+      Copy-Item -Path ($xdbgdir + "\*") -Destination $_.FullName -Recurse -Force
+      Add-Content -Path $phpini -Value $xdbgconf
+    } else {
+      # 存在しないDLLを読み込まないよう、対応ビルドが未公開の場合は追記しない
+      Write-Host ($_.Name + "に対応するXdebugが見つからないため、Xdebugの設定をスキップします。")
     }
   }
 }
